@@ -10,7 +10,7 @@ export NVM_DIR="$HOME/.nvm"
 echo "--- Starting Run: $(date -u +'%Y-%m-%dT%H:%M:%SZ') ---
 "
 
-gemini --approval-mode=yolo --prompt $(cat system_prompt.txt)
+gemini --approval-mode=yolo --prompt $(cat system_prompt.md)
 
 echo "--- Run Complete ---
 "
