@@ -1,12 +1,16 @@
 #!/bin/bash
 
-# If Taurus is already running, stop it before starting a new instance
-if pgrep -x "taurus.sh" > /dev/null; then
-  echo "Stopping existing Taurus instance..."
-  pkill -x "taurus.sh"
-  # Wait a moment to ensure the process has terminated
+PID_FILE="/tmp/taurus-agent.pid"
+
+# If Taurus was already running, stop that recorded instance before starting a new one.
+if [ -f "$PID_FILE" ] && kill -0 "$(cat "$PID_FILE")" 2>/dev/null; then
+  echo "--- Stopping existing Taurus instance: $(cat "$PID_FILE") ---"
+  kill "$(cat "$PID_FILE")" 2>/dev/null || true
   sleep 5
 fi
+
+echo "$$" > "$PID_FILE"
+trap 'rm -f "$PID_FILE"' EXIT
 
 # Load environment variables from .env if it exists
 [ -f .env ] && set -a && source .env && set +a
