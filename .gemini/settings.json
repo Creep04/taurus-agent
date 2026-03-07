@@ -1,13 +1,8 @@
 {
   "mcp": {
-    "allowed": ["sqlite", "github", "resend"]
+    "allowed": ["github", "resend"]
   },
   "mcpServers": {
-    "sqlite": {
-      "command": "npx",
-      "args": ["-y", "mcp-sqlite", "$SQLITE_PATH"],
-      "trust": true
-    },
     "github": {
         "httpUrl": "https://api.githubcopilot.com/mcp/",
         "headers": { "Authorization": "Bearer $GITHUB_MCP_PAT" }
@@ -17,6 +12,12 @@
       "args": ["-y", "resend-mcp"],
       "env": { "RESEND_API_KEY": "$RESEND_API_KEY" },
       "trust": true
+    }
+  },
+  "context": {
+    "filtering": {
+      "respectGitIgnore": false,
+      "respectGeminiIgnore": true
     }
   }
 }

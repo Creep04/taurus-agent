@@ -2,6 +2,5 @@
 .gitignore
 system_prompt.md
 taurus.sh
-taurus.db
 .env.example
 .env
