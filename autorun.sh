@@ -11,7 +11,7 @@ COMMAND="$SCRIPT_DIR/$COMMAND_NAME"
 INTERVAL=$((15 * 60))             # Seconds between scheduled runs (15 min)
 TIMEOUT=$((30 * 60))              # Max allowed runtime before kill (30 min)
 WEBHOOK_PORT=9876                 # Port to listen for webhook POST requests
-WEBHOOK_PATH="/trigger"           # HTTP path that triggers a run
+WEBHOOK_PATH="/resend-trigger"    # HTTP path that triggers a run
 SVIX_SECRET="${SVIX_SECRET:?Set SVIX_SECRET to the Svix signing secret}"
 SVIX_TOLERANCE=300                # Allowed webhook clock drift in seconds
 
@@ -31,11 +31,13 @@ trap 'WEBHOOK_TRIGGERED=1' USR1
 
 # Lifecycle helpers
 cleanup() {
-  echo "Runner shutting down."
   kill "${WEBHOOK_PID:-}" 2>/dev/null || true
   rm -f "$PENDING_FILE"
 }
-trap cleanup EXIT INT TERM
+
+trap cleanup EXIT
+trap 'echo "Runner shutting down."; exit 130' INT
+trap 'echo "Runner shutting down."; exit 143' TERM
 
 constant_time_equals() {
   local left=$1
