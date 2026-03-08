@@ -6,13 +6,14 @@ set -euo pipefail
 
 # Configuration
 SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
-COMMAND_NAME="taurus.sh"          # Script located next to autorun.sh
-COMMAND="$SCRIPT_DIR/$COMMAND_NAME"
+cd "$SCRIPT_DIR" || exit 1
+
+COMMAND="taurus.sh"               # Script located next to autorun.sh
 INTERVAL=$((15 * 60))             # Seconds between scheduled runs (15 min)
 TIMEOUT=$((30 * 60))              # Max allowed runtime before kill (30 min)
 WEBHOOK_PORT=9876                 # Port to listen for webhook POST requests
 WEBHOOK_PATH="/resend-trigger"    # HTTP path that triggers a run
-SVIX_SECRET="${SVIX_SECRET:?Set SVIX_SECRET to the Svix signing secret}"
+SVIX_SECRET="whsec_..."           # Svix webhook secret (set to empty to disable verification)
 SVIX_TOLERANCE=300                # Allowed webhook clock drift in seconds
 
 # State files
@@ -185,18 +186,18 @@ trigger_webhook_run() {
 # Execute the command with timeout enforcement and pending-trigger handling.
 # This script assumes a single autorun.sh instance managed by the service.
 run_command() {
-  echo "Starting $COMMAND_NAME."
+  echo "Starting $COMMAND."
 
   # Run the script located alongside autorun.sh.
   "$COMMAND" &
   local cmd_pid=$!
-  echo "$COMMAND_NAME started (PID $cmd_pid)."
+  echo "$COMMAND started (PID $cmd_pid)."
 
   # Kill the child if it runs longer than the configured timeout.
   (
     sleep "$TIMEOUT"
     if kill -0 "$cmd_pid" 2>/dev/null; then
-      echo "TIMEOUT: killing $COMMAND_NAME (PID $cmd_pid) after ${TIMEOUT}s."
+      echo "TIMEOUT: killing $COMMAND (PID $cmd_pid) after ${TIMEOUT}s."
       kill -TERM "$cmd_pid" 2>/dev/null || true
       sleep 5
       kill -KILL "$cmd_pid" 2>/dev/null || true
@@ -208,12 +209,12 @@ run_command() {
   wait "$cmd_pid" 2>/dev/null || true
   kill "$watchdog_pid" 2>/dev/null || true   # cancel watchdog if cmd exited early
 
-  echo "$COMMAND_NAME finished."
+  echo "$COMMAND finished."
 
   # If a webhook arrived while the script was running, honour it now.
   if [[ -f "$PENDING_FILE" ]]; then
     rm -f "$PENDING_FILE"
-    echo "Pending webhook trigger found; re-running $COMMAND_NAME now."
+    echo "Pending webhook trigger found; re-running $COMMAND now."
     run_command
   fi
 }
@@ -249,7 +250,7 @@ command -v openssl >/dev/null 2>&1 || {
   exit 1
 }
 
-echo "autorun for $COMMAND_NAME started (interval=${INTERVAL}s, timeout=${TIMEOUT}s, webhook=:${WEBHOOK_PORT}${WEBHOOK_PATH})."
+echo "autorun for $COMMAND started (interval=${INTERVAL}s, timeout=${TIMEOUT}s, webhook=:${WEBHOOK_PORT}${WEBHOOK_PATH})."
 start_webhook_server
 
 next_run=0
