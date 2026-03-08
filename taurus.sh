@@ -1,11 +1,11 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 PID_FILE="/tmp/taurus-agent.pid"
 
 # If Taurus was already running, stop that recorded instance before starting a new one.
 if [ -f "$PID_FILE" ] && kill -0 "$(cat "$PID_FILE")" 2>/dev/null; then
   echo "--- Stopping existing Taurus instance: $(cat "$PID_FILE") ---"
-  kill "$(cat "$PID_FILE")" 2>/dev/null || true
+  kill -INT "$(cat "$PID_FILE")" 2>/dev/null || true
   sleep 5
 fi
 

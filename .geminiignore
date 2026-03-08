@@ -2,5 +2,7 @@
 .gitignore
 system_prompt.md
 taurus.sh
+autorun.sh
+taurus.autorun.service
 .env.example
 .env

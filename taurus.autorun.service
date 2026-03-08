@@ -1,0 +1,18 @@
+[Unit]
+Description=Taurus Autorun
+After=network.target
+
+[Service]
+ExecStart=/home/taurus/taurus-agent/autorun.sh
+Restart=on-failure
+RestartSec=10
+
+# User to run the service as
+User=taurus
+
+# Logs go to journald (view with: journalctl -u foobar-runner -f)
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
